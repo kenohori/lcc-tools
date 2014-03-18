@@ -546,4 +546,81 @@ struct Centroid_computer<LCC, typename CGAL::Point_d<Kernel>, typename Kernel::F
   }
 };
 
+template <class LCC, class Point, class FT>
+struct Point_fitter {
+  Point_fitter() {
+    std::cerr << "Error: Cannot fit point of unknown type." << std::endl;
+  }
+  
+  void add_point(const Point &p) {
+    std::cerr << "Error: Cannot fit point of unknown type." << std::endl;
+  }
+  
+  Point get_point(const Point &p) {
+    std::cerr << "Error: Cannot fit point of unknown type." << std::endl;
+    return Point();
+  }
+};
+
+template <class LCC, class Kernel>
+struct Point_fitter<LCC, typename CGAL::Point_2<Kernel>, typename Kernel::FT> {
+  typename CGAL::Point_2<Kernel> min, max;
+  unsigned int num_points = 0;
+  
+  Point_fitter() {
+    
+  }
+  
+  void add_point(const typename CGAL::Point_2<Kernel> &p) {
+    if (num_points == 0) {
+      min = max = p;
+      ++num_points;
+    } else {
+      if (p < min) min = p;
+      if (p > max) max = p;
+      ++num_points;
+    }
+  }
+  
+  typename CGAL::Point_2<Kernel> get_point(const typename CGAL::Point_2<Kernel> &p) {
+    typename CGAL::Vector_2<Kernel> ranges = max - min;
+    typename Kernel::FT scale_factor;
+    if (ranges.y() > ranges.x()) scale_factor = 10.0/ranges[1];
+    else scale_factor = scale_factor = 10.0/ranges[0];
+    typename CGAL::Vector_2<Kernel> translation_to_centre = CGAL::ORIGIN - CGAL::midpoint(min, max);
+    return CGAL::ORIGIN+((p+translation_to_centre)-CGAL::ORIGIN)*scale_factor;
+  }
+};
+
+template <class LCC, class Kernel>
+struct Point_fitter<LCC, typename CGAL::Point_3<Kernel>, typename Kernel::FT> {
+  typename CGAL::Point_3<Kernel> min, max;
+  unsigned int num_points = 0;
+  
+  Point_fitter() {
+    
+  }
+  
+  void add_point(const typename CGAL::Point_3<Kernel> &p) {
+    if (num_points == 0) {
+      min = max = p;
+      ++num_points;
+    } else {
+      if (p < min) min = p;
+      if (p > max) max = p;
+      ++num_points;
+    }
+  }
+  
+  typename CGAL::Point_3<Kernel> get_point(const typename CGAL::Point_3<Kernel> &p) {
+    typename CGAL::Vector_3<Kernel> ranges = max - min;
+    typename Kernel::FT scale_factor;
+    if (ranges.z() > ranges.x() && ranges.z() > ranges.y()) scale_factor = 10.0/ranges[2];
+    else if (ranges.y() > ranges.x()) scale_factor = 10.0/ranges[1];
+    else scale_factor = scale_factor = 10.0/ranges[0];
+    typename CGAL::Vector_3<Kernel> translation_to_centre = CGAL::ORIGIN - CGAL::midpoint(min, max);
+    return CGAL::ORIGIN+((p+translation_to_centre)-CGAL::ORIGIN)*scale_factor;
+  }
+};
+
 #endif
